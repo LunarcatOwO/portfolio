@@ -64,19 +64,24 @@ const Experience: React.FC = () => {
   const [languages, setLanguages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [useStaticData, setUseStaticData] = useState(false);
+  const username = "lunarcatowo"; // Your GitHub username
 
   useEffect(() => {
     const fetchLanguages = async () => {
       try {
         setIsLoading(true);
+        // Try to get data from GitHub API first
         const response = await fetch(
-          "https://api.github.com/users/lunarcatowo/repos?sort=updated&direction=desc&per_page=100"
+          `https://api.github.com/users/${username}/repos?sort=updated&direction=desc&per_page=100`,
+          {
+            // Add a short timeout since we have a fallback
+            signal: AbortSignal.timeout(3000)
+          }
         );
 
         if (!response.ok) {
-          throw new Error(
-            `GitHub API responded with status: ${response.status}`
-          );
+          throw new Error(`GitHub API responded with status: ${response.status}`);
         }
 
         const repos = await response.json();
@@ -96,18 +101,31 @@ const Experience: React.FC = () => {
         );
         
         setLanguages(sortedLanguages);
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "An unknown error occurred"
-        );
-        console.error("Error fetching GitHub languages:", err);
+        setUseStaticData(false);
+      } catch (error) {
+        console.warn("Falling back to static GitHub languages data:", error);
+        
+        try {
+          // Fall back to locally cached data
+          const staticResponse = await fetch('/portfolio/github-languages.json');
+          if (staticResponse.ok) {
+            const staticData = await staticResponse.json();
+            setLanguages(staticData);
+          } else {
+            throw new Error("No static languages data available");
+          }
+          setUseStaticData(true);
+        } catch (staticError) {
+          setError("Error loading language data. Please try again later.");
+          console.error("Error loading static languages:", staticError);
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchLanguages();
-  }, []);
+  }, [username]);
 
   // Generate CSS classes for hover effect based on language
   const getLanguageClass = (language: string) => {
@@ -123,19 +141,29 @@ const Experience: React.FC = () => {
         ) : error ? (
           <p className="text-center text-red-500">Error: {error}</p>
         ) : (
-          <div className='space-y-5'>
-            {languages.map((language) => (
-              <ProjectBox 
-                key={language}
-                className={getLanguageClass(language)}
-              >
-                {languageIcons[language] ? (
-                  <FontAwesomeIcon icon={languageIcons[language]} className='mr-4'/>
-                ) : null}
-                {language}
-              </ProjectBox>
-            ))}
-          </div>
+          <>
+            {useStaticData && (
+              <div className="mb-4">
+                <span className="text-xs text-gray-400">
+                  (using cached language data)
+                </span>
+              </div>
+            )}
+            <div className='space-y-5'>
+              {languages.map((language) => (
+                <ProjectBox 
+                  key={language}
+                  className={getLanguageClass(language)}
+                  language={language}
+                >
+                  {languageIcons[language] ? (
+                    <FontAwesomeIcon icon={languageIcons[language]} className='mr-4'/>
+                  ) : null}
+                  {language}
+                </ProjectBox>
+              ))}
+            </div>
+          </>
         )}
       </ContentBox>
     </>
