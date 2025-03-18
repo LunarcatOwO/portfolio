@@ -154,7 +154,7 @@ const Experience: React.FC = () => {
                 <ProjectBox 
                   key={language}
                   className={getLanguageClass(language)}
-                  language={language}
+                  language="" 
                 >
                   {languageIcons[language] ? (
                     <FontAwesomeIcon icon={languageIcons[language]} className='mr-4'/>
