@@ -1,32 +1,143 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import ContentBox from '../components/ContentBox';
 import ProjectBox from '../components/ProjectBox';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPython, faRust, faJs, faCss, faHtml5 } from '@fortawesome/free-brands-svg-icons';
-// import Logo from '../components/icons/Godot';
+import { 
+  faPython, 
+  faRust, 
+  faJs, 
+  faCss, 
+  faHtml5, 
+  faJava, 
+  faPhp,
+  faSwift,
+  faCuttlefish, // For C/C++
+  faDocker,
+  faReact
+} from '@fortawesome/free-brands-svg-icons';
+
+// Language to icon mapping
+const languageIcons = {
+  Python: faPython,
+  JavaScript: faJs,
+  TypeScript: faJs,
+  Rust: faRust,
+  HTML: faHtml5,
+  CSS: faCss,
+  Java: faJava,
+  PHP: faPhp,
+  Swift: faSwift,
+  C: faCuttlefish,
+  'C++': faCuttlefish,
+  'C#': faCuttlefish,
+  Dockerfile: faDocker,
+  React: faReact
+  // Add more mappings as needed
+};
+
+// Language to color mapping (using your theme colors)
+const languageColors = {
+  Python: {
+    primary: 'pythonPrimary',
+    secondary: 'pythonSecondary'
+  },
+  JavaScript: {
+    primary: 'typescriptPrimary',
+    secondary: 'typescriptSecondary'
+  },
+  TypeScript: {
+    primary: 'typescriptPrimary',
+    secondary: 'typescriptSecondary'
+  },
+  Rust: {
+    primary: 'rustPrimary',
+    secondary: 'rustSecondary'
+  },
+  // Default for other languages
+  default: {
+    primary: 'accent',
+    secondary: 'white'
+  }
+};
 
 const Experience: React.FC = () => {
+  const [languages, setLanguages] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchLanguages = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch(
+          "https://api.github.com/users/lunarcatowo/repos?sort=updated&direction=desc&per_page=100"
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            `GitHub API responded with status: ${response.status}`
+          );
+        }
+
+        const repos = await response.json();
+        
+        // Extract languages from repositories and count occurrences
+        const languageCount: { [key: string]: number } = {};
+        
+        for (const repo of repos) {
+          if (repo.language && repo.language !== 'null') {
+            languageCount[repo.language] = (languageCount[repo.language] || 0) + 1;
+          }
+        }
+
+        // Sort languages by frequency
+        const sortedLanguages = Object.keys(languageCount).sort(
+          (a, b) => languageCount[b] - languageCount[a]
+        );
+        
+        setLanguages(sortedLanguages);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "An unknown error occurred"
+        );
+        console.error("Error fetching GitHub languages:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchLanguages();
+  }, []);
+
+  // Generate CSS classes for hover effect based on language
+  const getLanguageClass = (language: string) => {
+    const colors = languageColors[language] || languageColors.default;
+    return `hover:[background:linear-gradient(45deg,#172033,theme(colors.gray.600)_50%,#172033)_padding-box,conic-gradient(from_var(--border-angle),theme(colors.${colors.secondary})_80%,_theme(colors.${colors.primary})_86%,_theme(colors.${colors.primary})_90%,_theme(colors.${colors.primary})_94%,_theme(colors.${colors.secondary}))_border-box] hover:border hover:border-transparent hover:animate-border`;
+  };
+
   return (
     <>
       <ContentBox title={'My Experience'} className='w-full md:w-3/5 mb-20 grainybg'>
-        <div className='space-y-5'>
-
-          <ProjectBox className='hover:[background:linear-gradient(45deg,#172033,theme(colors.gray.600)_50%,#172033)_padding-box,conic-gradient(from_var(--border-angle),theme(colors.pythonSecondary)_80%,_theme(colors.pythonPrimary)_86%,_theme(colors.pythonPrimary)_90%,_theme(colors.pythonPrimary)_94%,_theme(colors.pythonSecondary))_border-box] hover:border hover:border-transparent hover:animate-border'>
-            <FontAwesomeIcon icon={faPython} className='mr-4'/>Python
-          </ProjectBox>
-          <ProjectBox className='hover:[background:linear-gradient(45deg,#172033,theme(colors.gray.600)_50%,#172033)_padding-box,conic-gradient(from_var(--border-angle),theme(colors.typescriptSecondary)_80%,_theme(colors.typescriptPrimary)_86%,_theme(colors.typescriptPrimary)_90%,_theme(colors.typescriptPrimary)_94%,_theme(colors.typescriptSecondary))_border-box] hover:border hover:border-transparent hover:animate-border'>
-            <FontAwesomeIcon icon={faJs} className='mr-4'/>Typescript
-          </ProjectBox>
-          <ProjectBox className='hover:[background:linear-gradient(45deg,#172033,theme(colors.gray.600)_50%,#172033)_padding-box,conic-gradient(from_var(--border-angle),theme(colors.rustSecondary)_80%,_theme(colors.rustPrimary)_86%,_theme(colors.rustPrimary)_90%,_theme(colors.rustPrimary)_94%,_theme(colors.rustSecondary))_border-box] hover:border hover:border-transparent hover:animate-border'>
-            <FontAwesomeIcon icon={faRust} className='mr-4'/>Rust
-          </ProjectBox>
-          <ProjectBox>
-            {/* <Logo fill='currentColor' className='mr-4 flex flex-row items-center' /> */}
-            GdScript
-          </ProjectBox>
-          <ProjectBox><FontAwesomeIcon icon={faHtml5} className='mr-4'/>Html</ProjectBox>
-          <ProjectBox><FontAwesomeIcon icon={faCss} className='mr-4'/>Css</ProjectBox>
-        </div>
+        {isLoading ? (
+          <p className="text-center text-gray-400">Loading languages...</p>
+        ) : error ? (
+          <p className="text-center text-red-500">Error: {error}</p>
+        ) : (
+          <div className='space-y-5'>
+            {languages.map((language) => (
+              <ProjectBox 
+                key={language}
+                language={language}
+                className={getLanguageClass(language)}
+              >
+                {languageIcons[language] ? (
+                  <FontAwesomeIcon icon={languageIcons[language]} className='mr-4'/>
+                ) : null}
+                {language}
+              </ProjectBox>
+            ))}
+          </div>
+        )}
       </ContentBox>
     </>
   );
