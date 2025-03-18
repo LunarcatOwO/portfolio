@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Default",
+  "compilerOptions": {
+      "lib": ["DOM", "DOM.Iterable", "ESNext"],
+      "jsx": "react-jsx",
+      "module": "ESNext",
+      "target": "ES2015",
+      "paths": {
+          "@component/*": ["./src/components/*"],
+      },
+      "plugins": [
+          {
+              "name": "typescript-plugin-tw-template"
+          }
+      ],
+
+      "allowJs": false,
+      "allowSyntheticDefaultImports": true,
+      "composite": false,
+      "declaration": true,
+      "declarationMap": true,
+      "esModuleInterop": true,
+      "forceConsistentCasingInFileNames": true,
+      "inlineSources": false,
+      "isolatedModules": true,
+      "moduleResolution": "Node",
+      "newLine": "lf",
+      "noEmit": true,
+      "noFallthroughCasesInSwitch": true,
+      "noImplicitAny": false,
+      "noImplicitOverride": true,
+      "noImplicitReturns": true,
+      "noPropertyAccessFromIndexSignature": false,
+      "noUncheckedIndexedAccess": true,
+      "noUnusedLocals": true,
+      "noUnusedParameters": true,
+      "preserveWatchOutput": true,
+      "resolveJsonModule": true,
+      "skipLibCheck": true,
+      "sourceMap": true,
+      "strict": true,
+      "stripInternal": true,
+      "useDefineForClassFields": true
+  },
+  "include": ["src/components/**/*", "vite.config.ts", "./package.json", "src/pages/Card.tsx", "src/pages/Experience.tsx", "src/pages/Projects.tsx", "src/pages/Contact.tsx", "src/pages/Blog.tsx", "src/pages/Footer.tsx", "src/pages/Nav.tsx"],
+  "exclude": ["node_modules"]
+}
