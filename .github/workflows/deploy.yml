@@ -28,7 +28,21 @@ jobs:
 
       - name: Build the project
         run: npm run build
+      
+      - name: Create zip archive of build
+        run: |
+          cd build
+          zip -r ../portfolio-build.zip .
+          cd ..
 
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: release-${{ github.run_number }}
+          name: Portfolio Build ${{ github.run_number }}
+          files: portfolio-build.zip
+          generate_release_notes: true
+          
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
