@@ -8,15 +8,20 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: write
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+    
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: '18'
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm install
@@ -25,4 +30,7 @@ jobs:
         run: npm run build
 
       - name: Deploy to GitHub Pages
-        run: npm run deploy
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: build # The folder the action should deploy
+          branch: gh-pages # The branch to deploy to
