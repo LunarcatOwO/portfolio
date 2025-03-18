@@ -4,7 +4,8 @@ on:
   push:
     branches:
       - main
-
+  schedule:
+    - cron: '0 0 * * 1' # Runs every Monday at midnight UTC
 
   workflow_dispatch: # ALlows this action to be triggered manually
 
