@@ -92,7 +92,7 @@ const Experience: React.FC = () => {
 
         // Sort languages by frequency
         const sortedLanguages = Object.keys(languageCount).sort(
-          (a, b) => languageCount[b] - languageCount[a]
+          (a, b) => (languageCount[b] ?? 0) - (languageCount[a] ?? 0)
         );
         
         setLanguages(sortedLanguages);
