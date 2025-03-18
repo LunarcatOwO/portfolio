@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+
+  workflow_dispatch: # ALlows this action to be triggered manually
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
