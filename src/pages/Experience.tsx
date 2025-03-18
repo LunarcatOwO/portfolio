@@ -127,7 +127,6 @@ const Experience: React.FC = () => {
             {languages.map((language) => (
               <ProjectBox 
                 key={language}
-                language={language}
                 className={getLanguageClass(language)}
               >
                 {languageIcons[language] ? (
