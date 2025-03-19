@@ -401,18 +401,42 @@ const Background: React.FC = () => {
         const tailPoint = Math.ceil(userData.tailProgress * totalPoints);
         
         // Create a new array with only the visible part of the path
-        const visibleArcPoints = arcPoints.slice(tailPoint, headPoint);
+        let visibleArcPoints = arcPoints.slice(tailPoint, headPoint);
         
         // Need at least 2 points to draw a line
         if (visibleArcPoints.length < 2) {
-          if (userData.tailProgress >= 1) {
-            // If fully disappeared, remove the line
-            if (line.parent) line.parent.remove(line);
+          // If we don't have enough points, check if it's because the tail caught up
+          // or if the line is just starting to form
+          if (userData.tailProgress > 0.05) {
+            // Line is disappearing - ensure smooth fade out by maintaining arc shape
+            // Instead of slicing (which might leave too few points), interpolate points along the arc
+            const remainingProgress = Math.max(0, userData.headProgress - userData.tailProgress);
+            
+            if (remainingProgress > 0.01) {
+              // Use at least 3 points to maintain a curve
+              const firstPoint = arcPoints[tailPoint] || arcPoints[0];
+              const lastPoint = arcPoints[Math.min(headPoint, arcPoints.length - 1)];
+              
+              // Add a middle point to keep the arc shape
+              const middleIndex = Math.floor((tailPoint + headPoint) / 2);
+              const middlePoint = arcPoints[middleIndex] || 
+                                  arcPoints[Math.min(Math.floor(arcPoints.length / 2), arcPoints.length - 1)];
+              
+              visibleArcPoints = [firstPoint, middlePoint, lastPoint];
+            }
           }
-          return;
+          
+          if (visibleArcPoints.length < 2) {
+            // Still not enough points, fade it out by removing from scene
+            if (userData.tailProgress > 0) {
+              // If fully disappeared, remove the line
+              if (line.parent) line.parent.remove(line);
+            }
+            return;
+          }
         }
         
-        // Update the line geometry
+        // Now update the line geometry with our improved point selection
         line.geometry.setFromPoints(visibleArcPoints);
         
         // Update material opacity for glowing effect - more pronounced at the head
