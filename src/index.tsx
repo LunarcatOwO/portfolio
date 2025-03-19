@@ -5,6 +5,7 @@ import App from './App.tsx';
 import reportWebVitals from './reportWebVitals.ts';
 import Nav from './pages/Nav.tsx';
 import Footer from './pages/Footer.tsx';
+import Background from './components/Background.tsx';
 
 
 const root = ReactDOM.createRoot(
@@ -12,13 +13,13 @@ const root = ReactDOM.createRoot(
 );
 
 root.render(
-    <div className="flex flex-grow space-y-8 text-text flex-col min-h-screen ">
+    <div className="flex flex-grow space-y-8 text-text flex-col min-h-screen">
+      <Background />
       <div className='flex-1'> 
-      <Nav />
-      <App />
-    </div>
-    <Footer />
-
+        <Nav />
+        <App />
+      </div>
+      <Footer />
     </div>
 );
 
