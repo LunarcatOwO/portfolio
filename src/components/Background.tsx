@@ -191,24 +191,26 @@ const Background: React.FC = () => {
       // Create arc points
       const arcPoints = createArcPoints(start, end);
       
-      // Create line geometry with all points (visible line will be controlled via clipping)
+      // Create line geometry with the full arc initially
       const lineGeometry = new THREE.BufferGeometry();
-      
-      // Fix TS error by ensuring we have a valid point
-      const initialPoint = new THREE.Vector3().copy(start);
-      lineGeometry.setFromPoints([initialPoint]);
+      lineGeometry.setFromPoints(arcPoints);
       
       const line = new THREE.Line(lineGeometry, lineMaterial);
       
-      // Store animation data
+      // Modify the line.userData in createNetworkLine to track both head and tail:
       line.userData = {
-        progress: 0,
-        speed: 0.005 + Math.random() * 0.01,
+        headProgress: 0, // Progress of the leading edge
+        tailProgress: 0, // Progress of the trailing edge (where deletion starts)
+        speed: 0.01 + Math.random() * 0.01, 
+        tailDelay: 0.3 + Math.random() * 0.2, // Delay before tail starts disappearing
         startPoint: start.clone(),
         endPoint: end.clone(),
+        startIndex: startIndex,
+        endIndex: endIndex,
         arcPoints: arcPoints,
         isHubConnection: isHubConnection,
-        active: true
+        active: true,
+        completed: false // Track if this connection has completed its journey
       };
       
       // Add debug info - fix TS error with optional chaining and optional midpoint calculation
@@ -269,8 +271,20 @@ const Background: React.FC = () => {
     // Stagger animation starts for more visual interest - fixed unused variable warning
     networkLines.forEach(line => {
       if (line.userData) {
-        // Start some lines with negative progress for staggered animation
-        line.userData.progress = -Math.random() * 1.5;
+        // Randomize initial progress states for visual interest
+        line.userData.headProgress = Math.random() * 0.5; // Start partway through
+        line.userData.tailProgress = Math.max(0, line.userData.headProgress - line.userData.tailDelay);
+        
+        // Update line geometry initially to show it right away
+        if (line.userData.headProgress > 0 && line.userData.arcPoints) {
+          const headPoint = Math.ceil(line.userData.headProgress * line.userData.arcPoints.length);
+          const tailPoint = Math.ceil(line.userData.tailProgress * line.userData.arcPoints.length);
+          const visibleArcPoints = line.userData.arcPoints.slice(tailPoint, headPoint);
+          
+          if (visibleArcPoints.length >= 2) {
+            line.geometry.setFromPoints(visibleArcPoints);
+          }
+        }
       }
     });
     
@@ -295,53 +309,120 @@ const Background: React.FC = () => {
     function animate() {
       requestAnimationFrame(animate);
       
+      // Add a subtle oscillation to the globe rotation for dynamic feel
+      const time = Date.now() * 0.001;
+      globe.rotation.y += 0.001 + 0.0005 * Math.sin(time);
+      globe.rotation.x += 0.0003 * Math.cos(time);
+      
       // Rotate globe slowly
       globe.rotation.y += 0.001;
       
       // Animate network lines
-      networkLines.forEach(line => {
+      networkLines.forEach((line, lineIndex) => {
         if (!line.geometry) return;
         
         const userData = line.userData;
         if (!userData) return;
-
         
-        // Update progress
-        userData.progress += userData.speed;
+        // Update head progress
+        userData.headProgress += userData.speed;
         
-        if (userData.progress >= 1) {
-          // When a line completes, restart it after a delay
-          userData.progress = -Math.random() * 1.0; // Negative progress creates a delay
+        // Start moving the tail after delay
+        if (userData.headProgress > userData.tailDelay) {
+          userData.tailProgress += userData.speed;
+        }
+        
+        // Check if line has completed its journey
+        if (userData.headProgress >= 1 && !userData.completed) {
+          userData.completed = true;
           
-          // Update line color slightly on each cycle for visual interest
-          if (userData.isHubConnection) {
-            const hue = Math.random() * 0.1 + 0.6; // Blue hue range
-            const color = new THREE.Color().setHSL(hue, 0.8, 0.6);
-            (line.material as THREE.LineBasicMaterial).color = color;
+          // Create a new connection from the destination node
+          const sourceIndex = userData.endIndex;
+          if (sourceIndex !== undefined) {
+            setTimeout(() => {
+              // Make sure sourceIndex is definitely a number
+              if (sourceIndex === undefined) return;
+              
+              // Find a random target node that isn't the current source
+              let possibleTargets = networkNodes
+                .map((_, i) => i)
+                .filter(i => i !== sourceIndex);
+                
+              if (possibleTargets.length > 0) {
+                const randomIndex = Math.floor(Math.random() * possibleTargets.length);
+                const targetIndex = possibleTargets[randomIndex];
+                
+                // Make sure target index exists
+                if (targetIndex === undefined) return;
+                
+                // Get the actual nodes and verify they exist
+                const sourceNode = networkNodes[sourceIndex];
+                const targetNode = networkNodes[targetIndex];
+                
+                // Additional safety check
+                if (sourceNode && targetNode) {
+                  // Now TypeScript knows these are definitely Vector3 objects
+                  const sourceIsHub = networkHubs.includes(sourceNode);
+                  const targetIsHub = networkHubs.includes(targetNode);
+                  const isHubConnection = sourceIsHub && targetIsHub;
+                  
+                  const newLine = createNetworkLine(
+                    sourceIndex, 
+                    targetIndex, 
+                    isHubConnection
+                  );
+                  
+                  if (newLine) networkLines.push(newLine);
+                }
+              }
+            }, Math.random() * 1000); // Stagger the creation of new lines
           }
         }
         
-        // Only update if progress is positive (during visible phase)
-        if (userData.progress <= 0) return;
+        // Remove line if it's completely disappeared
+        if (userData.tailProgress >= 1) {
+          // Remove this line
+          if (line.parent) line.parent.remove(line);
+          if (line.geometry) line.geometry.dispose();
+          if (line.material) (line.material as THREE.Material).dispose();
+          
+          // Remove from array (will skip this line on next frame)
+          networkLines.splice(lineIndex, 1);
+          return;
+        }
         
         // Get the original points
         const arcPoints = userData.arcPoints;
         if (!arcPoints || arcPoints.length < 2) return;
         
-        // Calculate how many points to show based on progress
+        // Calculate visible portion based on head and tail progress
         const totalPoints = arcPoints.length;
-        const visiblePoints = Math.max(2, Math.ceil(userData.progress * totalPoints));
+        const headPoint = Math.ceil(userData.headProgress * totalPoints);
+        const tailPoint = Math.ceil(userData.tailProgress * totalPoints);
         
         // Create a new array with only the visible part of the path
-        const visibleArcPoints = arcPoints.slice(0, visiblePoints);
+        const visibleArcPoints = arcPoints.slice(tailPoint, headPoint);
+        
+        // Need at least 2 points to draw a line
+        if (visibleArcPoints.length < 2) {
+          if (userData.tailProgress >= 1) {
+            // If fully disappeared, remove the line
+            if (line.parent) line.parent.remove(line);
+          }
+          return;
+        }
         
         // Update the line geometry
         line.geometry.setFromPoints(visibleArcPoints);
         
-        // Update material opacity for glowing effect
+        // Update material opacity for glowing effect - more pronounced at the head
         if (userData.isHubConnection) {
-          // Pulse effect for hub connections
-          const opacity = 0.6 + Math.sin(userData.progress * Math.PI) * 0.3;
+          // Pulse effect for hub connections with more dramatic range
+          const opacity = 0.6 + Math.sin(userData.headProgress * Math.PI) * 0.4;
+          (line.material as THREE.LineBasicMaterial).opacity = opacity;
+        } else {
+          // Regular connections
+          const opacity = 0.4 + (1 - Math.abs(userData.headProgress - 0.5)) * 0.6;
           (line.material as THREE.LineBasicMaterial).opacity = opacity;
         }
       });
