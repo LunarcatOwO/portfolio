@@ -304,6 +304,7 @@ const Background: React.FC = () => {
         
         const userData = line.userData;
         if (!userData) return;
+
         
         // Update progress
         userData.progress += userData.speed;
