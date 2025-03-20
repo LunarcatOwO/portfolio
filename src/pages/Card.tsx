@@ -71,52 +71,56 @@ const Card: React.FC = () => {
   return (
     <>
       <div className="md:flex sm:flex-col justify-center items-center w-full mt-10">
-        <ContentBox className="sm:w-4/5 md:w-2/5 mb-20 bg-black [background:linear-gradient(45deg,#172033,theme(colors.black)_50%,#172033)_padding-box,conic-gradient(from_var(--border-angle),theme(colors.slate.600/.48)_80%,_theme(colors.indigo.500)_86%,_theme(colors.indigo.300)_90%,_theme(colors.indigo.500)_94%,_theme(colors.slate.600/.48))_border-box] border border-transparent animate-border">
-          <div className="flex flex-row space-x-3">
+        <ContentBox className="card-with-corner-glow sm:w-4/5 md:w-2/5 mb-20 bg-black [background:linear-gradient(45deg,#291d29,theme(colors.black)_50%,#291d29)_padding-box,conic-gradient(from_var(--border-angle),theme(colors.slate.600/.48)_80%,_theme(colors.primary)_86%,_theme(colors.pink.300)_90%,_theme(colors.primary)_94%,_theme(colors.slate.600/.48))_border-box] border border-transparent animate-border relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-pink-500/20 rounded-full blur-xl -mr-8 -mt-8 z-0"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-pink-500/20 rounded-full blur-xl -ml-8 -mb-8 z-0"></div>
+          <div className="relative z-10">
+            <div className="flex flex-row space-x-3">
+              <a
+                href={`https://github.com/${username}`}
+                target="_blank"
+                rel="noreferrer"
+                className="mb-4"
+              >
+                <FontAwesomeIcon
+                  icon={faGithub}
+                  size="2x"
+                  className="text-white"
+                />
+              </a>
+              {useStaticData && (
+                <span className="text-xs text-gray-400 mt-1 self-center">
+                  (cached profile)
+                </span>
+              )}
+            </div>
             <a
               href={`https://github.com/${username}`}
               target="_blank"
               rel="noreferrer"
-              className="mb-4"
             >
-              <FontAwesomeIcon
-                icon={faGithub}
-                size="2x"
-                className="text-white"
-              />
+              {isLoading ? (
+                <div className="rounded-full w-32 h-32 mb-4 mx-auto bg-gray-700 animate-pulse"></div>
+              ) : (
+                <img
+                  src={getAvatarUrl()}
+                  alt="My Profile"
+                  className="rounded-full w-32 h-32 mb-4 mx-auto"
+                  onError={(e) => {
+                    // If image loading fails, fall back to the default
+                    const target = e.target as HTMLImageElement;
+                    target.onerror = null; // Prevent infinite loop
+                    target.src = "/pfp.png";
+                  }}
+                />
+              )}
             </a>
-            {useStaticData && (
-              <span className="text-xs text-gray-400 mt-1 self-center">
-                (cached profile)
-              </span>
-            )}
-          </div>
-          <a
-            href={`https://github.com/${username}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            {isLoading ? (
-              <div className="rounded-full w-32 h-32 mb-4 mx-auto bg-gray-700 animate-pulse"></div>
-            ) : (
-              <img
-                src={getAvatarUrl()}
-                alt="My Profile"
-                className="rounded-full w-32 h-32 mb-4 mx-auto"
-                onError={(e) => {
-                  // If image loading fails, fall back to the default
-                  const target = e.target as HTMLImageElement;
-                  target.onerror = null; // Prevent infinite loop
-                  target.src = "/pfp.png";
-                }}
-              />
-            )}
-          </a>
-          <p className="text-center">
-            <p>
-              {profileData?.bio || "I'm LunarcatOwO, a random student developer."}
+            <p className="text-center">
+              <p>
+                {profileData?.bio || "I'm LunarcatOwO, a random student developer."}
+              </p>
             </p>
-          </p>
+          </div>
         </ContentBox>
       </div>
 
