@@ -116,7 +116,7 @@ const Experience: React.FC = () => {
         try {
           // Fall back to locally cached data
           const staticResponse = await fetch(
-            "/portfolio/github-languages.json"
+            "/github-languages.json"
           );
           if (staticResponse.ok) {
             const staticData = await staticResponse.json();

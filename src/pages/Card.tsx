@@ -42,7 +42,7 @@ const Card: React.FC = () => {
         
         try {
           // Fall back to locally cached data
-          const staticResponse = await fetch('/portfolio/github-profile.json');
+          const staticResponse = await fetch('/github-profile.json');
           if (staticResponse.ok) {
             const staticData = await staticResponse.json();
             setProfileData(staticData);
@@ -68,7 +68,7 @@ const Card: React.FC = () => {
       // Use the locally cached image to avoid hotlinking
       return process.env.NODE_ENV === 'development' 
         ? profileData.avatar_url 
-        : "/portfolio/github-avatar.jpg";
+        : "/github-avatar.jpg";
     }
     return profileData.avatar_url;
   };

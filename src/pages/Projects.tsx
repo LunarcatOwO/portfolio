@@ -52,7 +52,7 @@ const Projects: React.FC = () => {
 
         try {
           // Fall back to locally cached data
-          const staticResponse = await fetch("/portfolio/github-repos.json");
+          const staticResponse = await fetch("/github-repos.json");
           if (staticResponse.ok) {
             const staticData = await staticResponse.json();
             setRepositories(staticData);
