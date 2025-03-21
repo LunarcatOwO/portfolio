@@ -1,4 +1,4 @@
-Collecting workspace information# LunarcatOwO's Portfolio
+# LunarcatOwO's Portfolio
 
 A modern, responsive portfolio website built with React, TypeScript, and Tailwind CSS. This portfolio automatically fetches and displays GitHub repositories, programming languages, and profile information.
 
