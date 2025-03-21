@@ -1,3 +1,8 @@
+// Portfolio  Copyright (C) 2025  LunarcatOwO
+// This program comes with ABSOLUTELY NO WARRANTY.
+// This is free software, and you are welcome to redistribute it
+// under certain conditions.
+// In accordance with Apache2.0 license as aquired from naterfute
 import React, { useEffect, useState } from 'react';
 import ContentBox from '../components/ContentBox';
 import ProjectBox from '../components/ProjectBox';

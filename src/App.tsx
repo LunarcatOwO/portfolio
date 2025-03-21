@@ -1,3 +1,4 @@
+// In accordance with Apache2.0 license as aquired from naterfute
 // App.tsx
 import React from 'react';
 import Projects from './pages/Projects.tsx';

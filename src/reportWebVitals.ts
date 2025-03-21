@@ -1,3 +1,4 @@
+// In accordance with Apache2.0 license as aquired from naterfute
 import { ReportHandler } from 'web-vitals';
 
 const reportWebVitals = (onPerfEntry?: ReportHandler) => {

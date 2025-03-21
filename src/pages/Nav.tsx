@@ -1,3 +1,4 @@
+// In accordance with Apache2.0 license as aquired from naterfute
 // The app's navbar
 import React from 'react';
 

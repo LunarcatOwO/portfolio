@@ -1,3 +1,4 @@
+// In accordance with Apache2.0 license as aquired from naterfute
 import React, { useState, useEffect, ReactNode } from "react";
 
 type Props = Readonly<

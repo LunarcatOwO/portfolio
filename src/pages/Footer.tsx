@@ -1,3 +1,4 @@
+// In accordance with Apache2.0 license as aquired from naterfute
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeart } from '@fortawesome/free-solid-svg-icons';
