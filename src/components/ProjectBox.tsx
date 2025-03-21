@@ -67,18 +67,9 @@ const ProjectBox = ({
 }: Props) => {
     const [revealProgress, setRevealProgress] = useState(0);
     const [isRevealing, setIsRevealing] = useState(false);
-    const [originalContent, setOriginalContent] = useState<ReactNode>(children);
-    const [originalTitle, setOriginalTitle] = useState<string>(title || '');
-    const [originalLanguage, setOriginalLanguage] = useState<string>(language || '');
-    const [obfuscatedContent, setObfuscatedContent] = useState<ReactNode>(obfuscateContent(children));
     
     // Process content when children change
     useEffect(() => {
-        setOriginalContent(children);
-        setOriginalTitle(title || '');
-        setOriginalLanguage(language || '');
-        setObfuscatedContent(obfuscateContent(children));
-        
         setIsRevealing(true);
         setRevealProgress(0);
     }, [children, title, language]);
