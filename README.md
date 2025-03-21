@@ -13,7 +13,7 @@ A modern, responsive portfolio website built with React, TypeScript, and Tailwin
 
 ## Looks
 
-See https://lunarcatowo.github.io/portfolio/
+See https://lunarcatowo.space
 
 ## Installation & Setup
 
