@@ -4,8 +4,8 @@
 // under certain conditions.
 // In accordance with Apache2.0 license as aquired from naterfute
 // Projects showing the user featured projects and a Description
-import React, { useEffect, useState } from 'react';
-import ContentBox from '../components/ContentBox';
+import React, { useEffect, useState } from "react";
+import ContentBox from "../components/ContentBox";
 
 // Define a type for GitHub repository data
 interface Repository {
@@ -34,12 +34,14 @@ const Projects: React.FC = () => {
           `https://api.github.com/users/${username}/repos?sort=updated&direction=desc`,
           {
             // Add a short timeout since we have a fallback
-            signal: AbortSignal.timeout(3000)
+            signal: AbortSignal.timeout(3000),
           }
         );
 
         if (!response.ok) {
-          throw new Error(`GitHub API responded with status: ${response.status}`);
+          throw new Error(
+            `GitHub API responded with status: ${response.status}`
+          );
         }
 
         const data = await response.json();
@@ -47,10 +49,10 @@ const Projects: React.FC = () => {
         setUseStaticData(false);
       } catch (err) {
         console.warn("Falling back to static GitHub repositories data:", err);
-        
+
         try {
           // Fall back to locally cached data
-          const staticResponse = await fetch('/portfolio/github-repos.json');
+          const staticResponse = await fetch("/portfolio/github-repos.json");
           if (staticResponse.ok) {
             const staticData = await staticResponse.json();
             setRepositories(staticData);
@@ -82,7 +84,11 @@ const Projects: React.FC = () => {
   return (
     <>
       {/* GitHub Repositories Section */}
-      <ContentBox title={'My Projects'} className='w-full md:w-3/5 mb-10 grainybg'>
+      <ContentBox
+        title={"My Projects"}
+        className="w-full md:w-3/5 mb-20 !bg-bounding-box !bg-opacity-100"
+        style={{ backgroundColor: "#1c1319" }}
+      >
         {isLoading ? (
           <p className="text-center text-gray-400">Loading repositories...</p>
         ) : error ? (
@@ -132,6 +138,3 @@ const Projects: React.FC = () => {
 };
 
 export default Projects;
-
-
-

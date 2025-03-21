@@ -7,22 +7,20 @@ module.exports = {
     extend: {
       colors: {
         'text': '#ffffff',
-        'bounding-box': '#111827',
+        'bounding-box': '#1c1319', // Changed from blue-gray to dark pink-tinted
         'background': '#000000',
-        'primary': '#e48d8d',
-        'secondary': '#861414',
-        'accent': '#f03030',
-        'contentBorder': '#ffffff11',
-        'contentBackground': '#ffffff09',
+        'primary': '#ff80b3', // More vibrant pink
+        'secondary': '#b3005f', // Deeper pink instead of dark red
+        'accent': '#ff3399', // Bright pink instead of bright red
+        'contentBorder': '#ff80b311', // Added pink tint
+        'contentBackground': '#ff80b309', // Added pink tint
         'rustPrimary': "#F74C00",
         'rustSecondary': "#2A3439",
         'typescriptPrimary': "#3178C6",
         'typescriptSecondary': "#FFFFFF",
         'pythonPrimary': "#306998",
         'pythonSecondary': "#FFD43B",
-
-
-    },
+      },
     animation: {
       'border': 'border 4s linear infinite',
       'bounce-perlin': 'bouncePerlin 6s ease-in-out infinite',

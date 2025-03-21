@@ -140,7 +140,11 @@ const Experience: React.FC = () => {
 
   return (
     <>
-      <ContentBox title={'My Experience'} className='w-full md:w-3/5 mb-20 grainybg'>
+      <ContentBox 
+        title={'My Experience'} 
+        className='w-full md:w-3/5 mb-20 !bg-bounding-box !bg-opacity-100' 
+        style={{backgroundColor: '#1c1319'}}
+      >
         {isLoading ? (
           <p className="text-center text-gray-400">Loading languages...</p>
         ) : error ? (
