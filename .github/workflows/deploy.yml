@@ -3,7 +3,7 @@ name: Deploy
 on:
   push:
     branches:
-      - main
+      - Fools
   schedule:
     - cron: '0 0 * * 1' # Runs every Monday at midnight UTC
 
