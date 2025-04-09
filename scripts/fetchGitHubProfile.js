@@ -84,18 +84,44 @@ const fetchProfile = async () => {
 
     // Fetch repositories
     console.log('Fetching repositories...');
-    const repos = await githubApiRequest(`/users/${username}/repos?sort=updated&direction=desc&per_page=100`);
+    const userRepos = await githubApiRequest(`/users/${username}/repos?sort=updated&direction=desc&per_page=100`);
+    
+    // Create a combined repositories array
+    const allRepos = [...userRepos];
+    
+    // Fetch organizations the user belongs to
+    console.log('Fetching organizations...');
+    const orgs = await githubApiRequest(`/users/${username}/orgs`);
+    
+    // Fetch repositories for each organization
+    for (const org of orgs) {
+      console.log(`Fetching repositories for organization: ${org.login}...`);
+      try {
+        const orgRepos = await githubApiRequest(`/orgs/${org.login}/repos?per_page=100`);
+        // Filter to include only public repos
+        const publicOrgRepos = orgRepos.filter(repo => !repo.private);
+        allRepos.push(...publicOrgRepos);
+        console.log(`Added ${publicOrgRepos.length} public repositories from ${org.login}`);
+      } catch (orgError) {
+        console.warn(`Error fetching repos for org ${org.login}:`, orgError);
+      }
+    }
+    
+    // Sort all repositories by update date
+    allRepos.sort((a, b) => 
+      new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+    );
     
     // Save repositories data to JSON file
     const reposOutputPath = path.join(__dirname, '../public/github-repos.json');
-    fs.writeFileSync(reposOutputPath, JSON.stringify(repos, null, 2));
-    console.log(`Repositories data saved to ${reposOutputPath}`);
+    fs.writeFileSync(reposOutputPath, JSON.stringify(allRepos, null, 2));
+    console.log(`All repositories data (${allRepos.length} repos) saved to ${reposOutputPath}`);
 
-    // Extract languages from repositories
+    // Extract languages from all repositories
     console.log('Processing languages...');
     const languageCount = {};
     
-    for (const repo of repos) {
+    for (const repo of allRepos) {
       if (repo.language && repo.language !== 'null') {
         languageCount[repo.language] = (languageCount[repo.language] || 0) + 1;
       }
@@ -111,7 +137,7 @@ const fetchProfile = async () => {
     fs.writeFileSync(languagesOutputPath, JSON.stringify(sortedLanguages, null, 2));
     console.log(`Languages data saved to ${languagesOutputPath}`);
 
-    return { profile, repos, sortedLanguages };
+    return { profile, repos: allRepos, sortedLanguages };
   } catch (error) {
     throw error;
   }
