@@ -65,6 +65,18 @@ const languageColors = {
   },
 };
 
+// Define a type for GitHub repository data
+interface Repository {
+  id: number;
+  name: string;
+  html_url: string;
+  description: string | null;
+  language: string | null;
+  updated_at: string;
+  stargazers_count: number;
+  private?: boolean;
+}
+
 const Experience: React.FC = () => {
   const [languages, setLanguages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -76,27 +88,62 @@ const Experience: React.FC = () => {
     const fetchLanguages = async () => {
       try {
         setIsLoading(true);
-        // Try to get data from GitHub API first
-        const response = await fetch(
+        const allRepos: Repository[] = [];
+        
+        // Try to get user repos from GitHub API first
+        const userReposResponse = await fetch(
           `https://api.github.com/users/${username}/repos?sort=updated&direction=desc&per_page=100`,
           {
-            // Add a short timeout since we have a fallback
             signal: AbortSignal.timeout(3000),
           }
         );
 
-        if (!response.ok) {
+        if (!userReposResponse.ok) {
           throw new Error(
-            `GitHub API responded with status: ${response.status}`
+            `GitHub API responded with status: ${userReposResponse.status}`
           );
         }
 
-        const repos = await response.json();
+        const userRepos = await userReposResponse.json();
+        allRepos.push(...userRepos);
+        
+        // Fetch organizations the user belongs to
+        const orgsResponse = await fetch(
+          `https://api.github.com/users/${username}/orgs`,
+          {
+            signal: AbortSignal.timeout(3000),
+          }
+        );
+        
+        if (orgsResponse.ok) {
+          const orgs = await orgsResponse.json();
+          
+          // For each organization, fetch its repositories
+          await Promise.all(orgs.map(async (org) => {
+            try {
+              const orgReposResponse = await fetch(
+                `https://api.github.com/orgs/${org.login}/repos?per_page=100`,
+                {
+                  signal: AbortSignal.timeout(3000),
+                }
+              );
+              
+              if (orgReposResponse.ok) {
+                const orgRepos = await orgReposResponse.json();
+                // Filter to only include public repos
+                const publicOrgRepos = orgRepos.filter(repo => !repo.private);
+                allRepos.push(...publicOrgRepos);
+              }
+            } catch (orgError) {
+              console.warn(`Error fetching repos for org ${org.login}:`, orgError);
+            }
+          }));
+        }
 
-        // Extract languages from repositories and count occurrences
+        // Extract languages from all repositories and count occurrences
         const languageCount: { [key: string]: number } = {};
 
-        for (const repo of repos) {
+        for (const repo of allRepos) {
           if (repo.language && repo.language !== "null") {
             languageCount[repo.language] =
               (languageCount[repo.language] || 0) + 1;
@@ -115,9 +162,7 @@ const Experience: React.FC = () => {
 
         try {
           // Fall back to locally cached data
-          const staticResponse = await fetch(
-            "/github-languages.json"
-          );
+          const staticResponse = await fetch("/github-languages.json");
           if (staticResponse.ok) {
             const staticData = await staticResponse.json();
             setLanguages(staticData);

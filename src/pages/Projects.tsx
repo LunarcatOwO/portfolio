@@ -29,23 +29,64 @@ const Projects: React.FC = () => {
     const fetchRepositories = async () => {
       try {
         setIsLoading(true);
-        // Try to get data from GitHub API first
-        const response = await fetch(
-          `https://api.github.com/users/${username}/repos?sort=updated&direction=desc`,
+        const allRepos: Repository[] = [];
+        
+        // Try to get user repos from GitHub API first
+        const userReposResponse = await fetch(
+          `https://api.github.com/users/${username}/repos?sort=updated&direction=desc&per_page=100`,
           {
-            // Add a short timeout since we have a fallback
             signal: AbortSignal.timeout(3000),
           }
         );
 
-        if (!response.ok) {
+        if (!userReposResponse.ok) {
           throw new Error(
-            `GitHub API responded with status: ${response.status}`
+            `GitHub API responded with status: ${userReposResponse.status}`
           );
         }
 
-        const data = await response.json();
-        setRepositories(data);
+        const userRepos = await userReposResponse.json();
+        allRepos.push(...userRepos);
+        
+        // Fetch organizations the user belongs to
+        const orgsResponse = await fetch(
+          `https://api.github.com/users/${username}/orgs`,
+          {
+            signal: AbortSignal.timeout(3000),
+          }
+        );
+        
+        if (orgsResponse.ok) {
+          const orgs = await orgsResponse.json();
+          
+          // For each organization, fetch its repositories
+          await Promise.all(orgs.map(async (org) => {
+            try {
+              const orgReposResponse = await fetch(
+                `https://api.github.com/orgs/${org.login}/repos?per_page=100`,
+                {
+                  signal: AbortSignal.timeout(3000),
+                }
+              );
+              
+              if (orgReposResponse.ok) {
+                const orgRepos = await orgReposResponse.json();
+                // Filter to only include public repos
+                const publicOrgRepos = orgRepos.filter(repo => !repo.private);
+                allRepos.push(...publicOrgRepos);
+              }
+            } catch (orgError) {
+              console.warn(`Error fetching repos for org ${org.login}:`, orgError);
+            }
+          }));
+        }
+        
+        // Sort all repositories by update date
+        allRepos.sort((a, b) => 
+          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+        );
+        
+        setRepositories(allRepos);
         setUseStaticData(false);
       } catch (err) {
         console.warn("Falling back to static GitHub repositories data:", err);
