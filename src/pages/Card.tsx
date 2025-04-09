@@ -122,7 +122,7 @@ const Card: React.FC = () => {
             </a>
             <p className="text-center">
               <p>
-                {profileData?.bio || "I'm LunarcatOwO, a random student developer."}
+                {profileData?.bio || `I'm ${profileData?.name || username}, a random student developer.`}
               </p>
             </p>
           </div>
